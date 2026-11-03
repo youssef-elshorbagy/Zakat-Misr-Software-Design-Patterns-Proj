@@ -15,12 +15,11 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+### NetBeans (each person sets up their own) ###
+nbproject/
+build.xml
+manifest.mf
+dist/
 
 ### VS Code ###
 .vscode/
