@@ -18,7 +18,7 @@ public class DonationView extends JPanel {
     private final JTextField itemName = new JTextField(14);
     private final JSpinner quantity = new JSpinner(new SpinnerNumberModel(1, 1, 10000, 1));
     private final JCheckBox anonymous = new JCheckBox("Donate anonymously");
-    private final JCheckBox recurring = new JCheckBox("Repeat every");
+    private final JCheckBox recurring = new JCheckBox("Repeat every n months");
     private final JSpinner months = new JSpinner(new SpinnerNumberModel(1, 1, 12, 1));
     private final JButton donateBtn = Ui.button("Donate");
     private final JTextArea receipt = Ui.textArea(8);
