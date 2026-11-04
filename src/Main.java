@@ -1,3 +1,7 @@
+import donation.DonationCreatorRegistry;
+import donation.InKindDonationCreator;
+import donation.ZakatDonationCreator;
+import donation.SadaqahDonationCreator;
 import beneficiary.BeneficiaryService;
 import beneficiary.Need;
 import core.DatabaseManager;
@@ -31,6 +35,10 @@ public class Main {
         BeneficiaryService beneficiaryService = new BeneficiaryService();
         UserService userService = new UserService(volunteerService, beneficiaryService);
         DonationService donationService = new DonationService();
+        DonationCreatorRegistry donationCreators = new DonationCreatorRegistry();
+        donationCreators.register("Zakat", new ZakatDonationCreator());
+        donationCreators.register("Sadaqah", new SadaqahDonationCreator());
+        donationCreators.register("In-kind", new InKindDonationCreator());
         EventService eventService = new EventService();
         LookupService lookupService = new LookupService();
 
@@ -39,7 +47,7 @@ public class Main {
 
         SwingUtilities.invokeLater(() -> {
             Ui.installLookAndFeel();
-            new AppFrame(userService, donationService, volunteerService, eventService, beneficiaryService, lookupService)
+            new AppFrame(userService, donationService, volunteerService, eventService, beneficiaryService, lookupService, donationCreators)
                     .setVisible(true);
         });
     }
@@ -84,8 +92,8 @@ public class Main {
         beneficiaries.registerNeed(fatma, new Need(beneficiaries.nextNeedId(), "Food", "MEDIUM", 1500));
 
         // donations
-        donations.processDonation("zakat", ahmed, 5000);
-        donations.processDonation("sadaqah", mona, 300, "Ramadan Food Baskets", 1, false, 0);
+        donations.processDonation(new ZakatDonationCreator(), ahmed, 5000);
+        donations.processDonation(new SadaqahDonationCreator(), mona, 300, "Ramadan Food Baskets", 1, false, 0);
 
         // events
         long day = 24L * 3600 * 1000;

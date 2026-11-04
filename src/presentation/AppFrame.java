@@ -1,6 +1,7 @@
 package presentation;
 
 import beneficiary.BeneficiaryService;
+import donation.DonationCreatorRegistry;
 import event.EventService;
 import lookup.LookupService;
 import observer.Donation.DonationService;
@@ -26,6 +27,7 @@ public class AppFrame extends JFrame {
 
     private final UserService userService;
     private final DonationService donationService;
+    private final DonationCreatorRegistry donationCreators;
     private final VolunteerService volunteerService;
     private final EventService eventService;
     private final BeneficiaryService beneficiaryService;
@@ -40,10 +42,12 @@ public class AppFrame extends JFrame {
     private User currentUser;
 
     public AppFrame(UserService userService, DonationService donationService, VolunteerService volunteerService,
-                    EventService eventService, BeneficiaryService beneficiaryService, LookupService lookupService) {
+                    EventService eventService, BeneficiaryService beneficiaryService, LookupService lookupService,
+                    DonationCreatorRegistry donationCreators) {
         super("Zakat Misr");
         this.userService = userService;
         this.donationService = donationService;
+        this.donationCreators = donationCreators;
         this.volunteerService = volunteerService;
         this.eventService = eventService;
         this.beneficiaryService = beneficiaryService;
@@ -104,7 +108,7 @@ public class AppFrame extends JFrame {
 
         if (user instanceof Donor) {
             DonationView dv = new DonationView();
-            DonationController dc = new DonationController(donationService, dv);
+            DonationController dc = new DonationController(donationService, dv, donationCreators);
             dc.start((Donor) user, lookupService);
             addTab("Donate", dv, null);
             addEventsTab(user, false);

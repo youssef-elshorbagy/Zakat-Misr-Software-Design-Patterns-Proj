@@ -1,3 +1,7 @@
+import donation.DonationCreatorRegistry;
+import donation.ZakatDonationCreator;
+import donation.SadaqahDonationCreator;
+import donation.InKindDonationCreator;
 import beneficiary.AidDistribution;
 import beneficiary.BeneficiaryService;
 import beneficiary.Need;
@@ -53,6 +57,8 @@ public class SelfTest {
         EventService es = new EventService();
         LookupService lookup = new LookupService();
         ds.attach(new NotificationObserver());
+        final int[] notifications = {0};
+        ds.attach(donation -> notifications[0]++);
 
         System.out.println("\n== User CRUD ==");
         User donor = users.createAccount(reg("Donor", "d@x.com"));
@@ -84,17 +90,33 @@ public class SelfTest {
         check("delete", lookup.readAll().size() == 1);
         check("delete missing rejected", throwsIllegal(() -> lookup.delete(99)));
 
+        DonationCreatorRegistry creators = new DonationCreatorRegistry();
+        ZakatDonationCreator zakatCreator = new ZakatDonationCreator();
+        creators.register("Zakat", zakatCreator);
+        creators.register("Sadaqah", new SadaqahDonationCreator());
+        creators.register("In-kind", new InKindDonationCreator());
+        check("registry returns registered creator", creators.getCreator("Zakat") == zakatCreator);
+        check("registry retains registration order", creators.getTypes().equals(Arrays.asList("Zakat", "Sadaqah", "In-kind")));
+        check("registry rejects unknown type", throwsIllegal(() -> creators.getCreator("unknown")));
+        check("registry rejects duplicate type", throwsIllegal(() -> creators.register("Zakat", new ZakatDonationCreator())));
+        creators.getTypes().clear();
+        check("registry types cannot change registrations", creators.getTypes().size() == 3);
+
         System.out.println("\n== Donations (Factory / Decorator / Observer / Strategy) ==");
         Donor d = (Donor) donor;
-        Donation z = ds.processDonation("zakat", d, 5000);
-        Donation s = ds.processDonation("sadaqah", d, 300, "Ramadan", 1, true, 3);
-        Donation k = ds.processDonation("inkind", d, 800, "Blankets", 10, false, 0);
+        Donation z = ds.processDonation(new ZakatDonationCreator(), d, 5000);
+        Donation s = ds.processDonation(new SadaqahDonationCreator(), d, 300, "Ramadan", 1, true, 3);
+        Donation k = ds.processDonation(new InKindDonationCreator(), d, 800, "Blankets", 10, false, 0);
         check("history has 3", d.getDonationHistory().size() == 3);
         check("anonymous hides name", !s.getDescription().contains(d.getFullName()) && s.getDescription().contains("Anonymous"));
         check("recurring in description", s.getDescription().contains("Recurring every 3"));
         check("in-kind item and quantity", k.getDescription().contains("10 x Blankets"));
-        check("negative amount rejected", throwsIllegal(() -> ds.processDonation("zakat", d, -5)));
-        check("unknown type rejected", throwsIllegal(() -> ds.processDonation("gold", d, 5)));
+        check("negative amount rejected", throwsIllegal(() -> ds.processDonation(new ZakatDonationCreator(), d, -5)));
+        check("missing creator rejected", throwsIllegal(() -> ds.processDonation(null, d, 5)));
+        check("all donation types share history", ds.getAllDonations().size() == 3);
+        check("observer notified for every donation type", notifications[0] == 3);
+        check("zakat creator creates zakat", z instanceof donation.ZakatDonation);
+        check("invalid in-kind quantity rejected", throwsIllegal(() -> ds.processDonation(new InKindDonationCreator(), d, 5, "Goods", 0, false, 0)));
 
         System.out.println("\n== Volunteers ==");
         Volunteer sara = (Volunteer) users.createAccount(reg("Volunteer", "s@x.com"));

@@ -12,7 +12,7 @@ import java.util.List;
 /** MVC View - donor screen: donation form, receipt and history. Only displays, no business logic. */
 public class DonationView extends JPanel {
 
-    private final JComboBox<String> type = new JComboBox<>(new String[]{"Zakat", "Sadaqah", "In-kind"});
+    private final JComboBox<String> type = new JComboBox<>();
     private final JTextField amount = new JTextField(12);
     private final JComboBox<String> campaign = new JComboBox<>();
     private final JTextField itemName = new JTextField(14);
@@ -50,7 +50,12 @@ public class DonationView extends JPanel {
         detailPanel.add(zakatInfo, "Zakat");
         detailPanel.add(sadaqah, "Sadaqah");
         detailPanel.add(inkind, "In-kind");
-        type.addActionListener(e -> detailCards.show(detailPanel, (String) type.getSelectedItem()));
+        detailPanel.add(new JPanel(), "other");
+        type.addActionListener(e -> {
+            String selected = (String) type.getSelectedItem();
+            boolean known = "Zakat".equals(selected) || "Sadaqah".equals(selected) || "In-kind".equals(selected);
+            detailCards.show(detailPanel, known ? selected : "other");
+        });
 
         JPanel form = new JPanel();
         form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
@@ -99,11 +104,17 @@ public class DonationView extends JPanel {
         String desc = d.getDescription();
         if (desc.startsWith("Zakat")) return "Zakat";
         if (desc.startsWith("Sadaqah")) return "Sadaqah";
-        return "In-kind";
+        if (desc.startsWith("In-kind")) return "In-kind";
+        return "Other";
     }
 
     public void showStatusMessage(String msg) { Ui.setStatus(status, msg, false); }
     public void showError(String msg) { Ui.setStatus(status, msg, true); }
+
+    public void setTypes(List<String> names) {
+        type.removeAllItems();
+        for (String name : names) type.addItem(name);
+    }
 
     public void setCampaigns(List<String> names) {
         campaign.removeAllItems();
@@ -117,7 +128,9 @@ public class DonationView extends JPanel {
     public String getSelectedType() { return (String) type.getSelectedItem(); }
     public String getAmountText() { return amount.getText(); }
     public String getDetail() {
-        return "Sadaqah".equals(type.getSelectedItem()) ? String.valueOf(campaign.getSelectedItem()) : itemName.getText();
+        if ("Sadaqah".equals(type.getSelectedItem())) return String.valueOf(campaign.getSelectedItem());
+        if ("In-kind".equals(type.getSelectedItem())) return itemName.getText();
+        return null;
     }
     public int getQuantity() { return (Integer) quantity.getValue(); }
     public boolean isAnonymous() { return anonymous.isSelected(); }

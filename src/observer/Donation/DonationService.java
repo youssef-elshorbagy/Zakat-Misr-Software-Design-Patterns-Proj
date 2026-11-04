@@ -3,9 +3,8 @@ package observer.Donation;
 import core.DatabaseManager;
 import donation.AnonymousDonor;
 import donation.Donation;
-import donation.InKindDonation;
+import donation.DonationClient;
 import donation.RecurringDonor;
-import donation.SadaqahDonation;
 import observer.Observer;
 import observer.Subject;
 import users.Donor;
@@ -16,13 +15,11 @@ import java.util.List;
 /**
  * OBSERVER PATTERN (Subject) - uses FACTORY, DECORATOR and SINGLETON.
  */
-public abstract class DonationService implements Subject {
+public class DonationService implements Subject {
 
     private List<Observer> observers = new ArrayList<>();
     private DatabaseManager db = DatabaseManager.getInstance();
     private final List<Donation> allDonations = new ArrayList<>();
-
-    protected abstract Donation createDonation(Donor donor, double amount);
 
     @Override
     public void attach(Observer o) {
@@ -43,8 +40,8 @@ public abstract class DonationService implements Subject {
         }
     }
 
-    public Donation processDonation(String type, Donor donor, double amount) {
-        return processDonation(type, donor, amount, null, 1, false, 0);
+    public Donation processDonation(DonationClient creator, Donor donor, double amount) {
+        return processDonation(creator, donor, amount, null, 1, false, 0);
     }
 
     /**
@@ -53,7 +50,7 @@ public abstract class DonationService implements Subject {
      * @param anonymous       wrap with AnonymousDonor (DECORATOR)
      * @param recurringMonths &gt; 0 wraps with RecurringDonor (DECORATOR)
      */
-    public Donation processDonation(String type, Donor donor, double amount, String detail, int quantity,
+    public Donation processDonation(DonationClient creator, Donor donor, double amount, String detail, int quantity,
                                     boolean anonymous, int recurringMonths) {
         if (donor == null) {
             throw new IllegalArgumentException("Donor is required");
@@ -61,15 +58,9 @@ public abstract class DonationService implements Subject {
         if (amount <= 0) {
             throw new IllegalArgumentException("Donation amount must be positive");
         }
-        Donation donation = this.createDonation(donor, amount);     // FACTORY METHOD
-        if (donation instanceof SadaqahDonation && detail != null && !detail.isBlank()) {
-            ((SadaqahDonation) donation).setCampaignName(detail.trim());
-        }
-        if (donation instanceof InKindDonation) {
-            if (quantity <= 0) throw new IllegalArgumentException("Quantity must be at least 1");
-            if (detail != null && !detail.isBlank()) ((InKindDonation) donation).setItemName(detail.trim());
-            ((InKindDonation) donation).setQuantity(quantity);
-        }
+        if (creator == null) throw new IllegalArgumentException("Donation creator is required");
+        Donation donation = creator.createDonation(donor, amount, detail, quantity);
+        String type = donation.getClass().getSimpleName();
         if (anonymous) donation = new AnonymousDonor(donation);                      // DECORATOR
         if (recurringMonths > 0) donation = new RecurringDonor(donation, recurringMonths); // DECORATOR
 

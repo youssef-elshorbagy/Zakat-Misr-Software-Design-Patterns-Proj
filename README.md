@@ -23,6 +23,6 @@ New donors / volunteers / beneficiaries can register from the login screen.
 * **Everyone** - user control panel (view / update profile, change password, delete account).
 
 ## Patterns
-Singleton `DatabaseManager` - Factory `DonationFactory` - Observer `DonationService`/`NotificationObserver` -
+Singleton `DatabaseManager` - Factory Method `DonationClient` and its concrete creators - Observer `DonationService`/`NotificationObserver` -
 Strategy `communication/*` - Decorator `AnonymousDonor`/`RecurringDonor` - MVC `presentation/*`.
 
