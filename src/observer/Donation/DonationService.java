@@ -1,12 +1,13 @@
-package observer;
+package observer.Donation;
 
 import core.DatabaseManager;
 import donation.AnonymousDonor;
 import donation.Donation;
-import donation.DonationFactory;
 import donation.InKindDonation;
 import donation.RecurringDonor;
 import donation.SadaqahDonation;
+import observer.Observer;
+import observer.Subject;
 import users.Donor;
 
 import java.util.ArrayList;
@@ -15,11 +16,13 @@ import java.util.List;
 /**
  * OBSERVER PATTERN (Subject) - uses FACTORY, DECORATOR and SINGLETON.
  */
-public class DonationService implements Subject {
+public abstract class DonationService implements Subject {
 
     private List<Observer> observers = new ArrayList<>();
     private DatabaseManager db = DatabaseManager.getInstance();
     private final List<Donation> allDonations = new ArrayList<>();
+
+    protected abstract Donation createDonation(Donor donor, double amount);
 
     @Override
     public void attach(Observer o) {
@@ -58,7 +61,7 @@ public class DonationService implements Subject {
         if (amount <= 0) {
             throw new IllegalArgumentException("Donation amount must be positive");
         }
-        Donation donation = DonationFactory.createDonation(type, donor, amount);     // FACTORY
+        Donation donation = this.createDonation(donor, amount);     // FACTORY METHOD
         if (donation instanceof SadaqahDonation && detail != null && !detail.isBlank()) {
             ((SadaqahDonation) donation).setCampaignName(detail.trim());
         }

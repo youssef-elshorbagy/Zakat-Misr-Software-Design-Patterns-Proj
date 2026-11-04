@@ -3,7 +3,7 @@ package presentation;
 import donation.Donation;
 import lookup.DonationCategory;
 import lookup.LookupService;
-import observer.DonationService;
+import observer.Donation.DonationService;
 import users.Donor;
 
 import java.util.ArrayList;

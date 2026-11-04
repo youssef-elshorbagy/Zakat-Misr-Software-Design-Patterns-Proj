@@ -3,7 +3,7 @@ package presentation;
 import beneficiary.BeneficiaryService;
 import event.EventService;
 import lookup.LookupService;
-import observer.DonationService;
+import observer.Donation.DonationService;
 import users.Admin;
 import users.Beneficiary;
 import users.Donor;

@@ -4,7 +4,7 @@ import beneficiary.AidDistribution;
 import beneficiary.BeneficiaryService;
 import beneficiary.Need;
 import donation.Donation;
-import observer.DonationService;
+import observer.Donation.DonationService;
 import users.Admin;
 import users.Beneficiary;
 import users.User;
